@@ -59,4 +59,10 @@ app/
 └─ util/
 └─ TimeFormatter.kt
 
-![img.png](img.png) ![img_1.png](img_1.png) ![img_2.png](img_2.png) ![img_3.png](img_3.png)
+<img width="311" height="666" alt="img" src="https://github.com/user-attachments/assets/14016123-15b6-4ef0-989e-d2902865a961" />
+<img width="309" height="658" alt="img_1" src="https://github.com/user-attachments/assets/576c72bd-7762-47b7-81b2-dbde36d55aa8" />
+<img width="321" height="665" alt="img_2" src="https://github.com/user-attachments/assets/8007cc65-f79c-4f74-93c9-93ef37fc3006" />
+<img width="321" height="673" alt="img_3" src="https://github.com/user-attachments/assets/38a87645-9ceb-458e-8176-4723f2697494" />
+
+
+
