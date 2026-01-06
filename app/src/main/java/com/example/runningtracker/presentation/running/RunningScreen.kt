@@ -37,7 +37,7 @@ fun RunningScreen(
 
             // 경과 시간 표시
             Text(
-                text = formatTime(uiState.elapsedTime),
+                text = formatTime(uiState.elapsedTimeMillis),
                 style = MaterialTheme.typography.headlineLarge
             )
 
