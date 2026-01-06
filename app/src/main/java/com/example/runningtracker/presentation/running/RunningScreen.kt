@@ -1,50 +1,55 @@
 package com.example.runningtracker.presentation.running
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.runningtracker.presentation.ButtonControls
 import com.example.runningtracker.presentation.RunningMap
-import com.example.runningtracker.util.TimeFormatter
+import com.example.runningtracker.service.ServiceAction
+import com.example.runningtracker.util.formatTime
 
 @Composable
 fun RunningScreen(
-    viewModel: RunningViewModel = viewModel()
+    uiState: RunningUiState,
+    onAction: (ServiceAction) -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
 
-        Text(
-            text = TimeFormatter.formatTime(uiState.elapsedTime),
-            modifier = Modifier.padding(16.dp)
-        )
-
+        // 지도 + 경로
         RunningMap(
             path = uiState.path,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // 하단 컨트롤 영역
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        )
+                .align(Alignment.BottomCenter)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
-        Spacer(modifier = Modifier.height(16.dp))
+            // 경과 시간 표시
+            Text(
+                text = formatTime(uiState.elapsedTime),
+                style = MaterialTheme.typography.headlineLarge
+            )
 
-        ButtonControls(
-            isTracking = uiState.isTracking,
-            onStartClick = viewModel::onStart,
-            onPauseClick = viewModel::onPause,
-            onStopClick = viewModel::onStop
-        )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+            // 버튼 영역
+            ButtonControls(
+                isTracking = uiState.isTracking,
+                onStartClick = { onAction(ServiceAction.START) },
+                onPauseClick = { onAction(ServiceAction.PAUSE) },
+                onStopClick = { onAction(ServiceAction.STOP) }
+            )
+        }
     }
 }
