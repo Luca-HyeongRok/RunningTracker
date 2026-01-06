@@ -22,6 +22,6 @@ val appModule = module {
         )
     }
 
-    viewModel { RunningViewModel(get()) }
+    viewModel { RunningViewModel() }
     viewModel { HistoryViewModel(get()) }
 }

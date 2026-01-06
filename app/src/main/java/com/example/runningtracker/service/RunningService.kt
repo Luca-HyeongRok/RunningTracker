@@ -65,6 +65,7 @@ class RunningService : LifecycleService() {
     }
 
     private var notificationBuilder: NotificationCompat.Builder? = null
+    private val prefs by lazy { getSharedPreferences(PREFS_NAME, MODE_PRIVATE) }
 
     override fun onCreate() {
         super.onCreate()
@@ -72,6 +73,10 @@ class RunningService : LifecycleService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent == null) {
+            restoreStateIfNeeded()
+            return START_STICKY
+        }
         when (intent?.action) {
             ServiceAction.START.name -> start()
             ServiceAction.PAUSE.name -> pause()
@@ -93,6 +98,7 @@ class RunningService : LifecycleService() {
         }
 
         _isTracking.value = true
+        persistState()
         startForegroundNotification()
         startTimer()
         startLocationUpdates()
@@ -105,6 +111,7 @@ class RunningService : LifecycleService() {
 
         _isTracking.value = false
         timeRun = _elapsedTime.value
+        persistState()
 
         timerJob?.cancel()
         locationJob?.cancel()
@@ -121,6 +128,7 @@ class RunningService : LifecycleService() {
         _isTracking.value = false
         timerJob?.cancel()
         locationJob?.cancel()
+        persistState()
 
         val elapsedSnapshot = _elapsedTime.value
         val pathSnapshot = _path.value
@@ -160,6 +168,7 @@ class RunningService : LifecycleService() {
 
                 if (total >= lastSecondTimestamp + 1000L) {
                     lastSecondTimestamp += 1000L
+                    persistState()
                     updateNotification(isPaused = false)
                 }
 
@@ -181,7 +190,9 @@ class RunningService : LifecycleService() {
                     _path.value = _path.value + latLng
                 }
             } catch (e: SecurityException) {
-                Log.w("RunningService", "Location permission missing")
+                Log.w("RunningService", "Location permission missing", e)
+            } catch (e: Exception) {
+                Log.w("RunningService", "Location updates failed", e)
             }
         }
     }
@@ -245,7 +256,7 @@ class RunningService : LifecycleService() {
             }
 
         val notification = builder
-            .setContentText("러닝 중 · ${formatTime(_elapsedTime.value)}")
+            .setContentText("운동 중 · ${formatTime(_elapsedTime.value)}")
             .build()
 
         startForeground(NotificationUtil.NOTIFICATION_ID, notification)
@@ -253,7 +264,7 @@ class RunningService : LifecycleService() {
 
     private fun updateNotification(isPaused: Boolean) {
         val builder = notificationBuilder ?: return
-        val status = if (isPaused) "일시정지" else "러닝 중"
+        val status = if (isPaused) "일시정지" else "운동 중"
 
         val notification = builder
             .setContentText("$status · ${formatTime(_elapsedTime.value)}")
@@ -274,6 +285,7 @@ class RunningService : LifecycleService() {
         _isTracking.value = false
         timeRun = 0L
         currentRunStartTime = null
+        clearState()
 
         stopForeground(true)
         stopSelf()
@@ -290,5 +302,48 @@ class RunningService : LifecycleService() {
 
     inner class LocalBinder : Binder() {
         fun getService(): RunningService = this@RunningService
+    }
+
+    private fun restoreStateIfNeeded(): Boolean {
+        val wasTracking = prefs.getBoolean(KEY_IS_TRACKING, false)
+        val savedElapsedTime = prefs.getLong(KEY_ELAPSED_TIME, 0L)
+        val savedStartTime = prefs.getLong(KEY_START_TIME, 0L)
+
+        if (savedElapsedTime > 0L) {
+            _elapsedTime.value = savedElapsedTime
+            timeRun = savedElapsedTime
+        }
+        if (savedStartTime > 0L) {
+            currentRunStartTime = Date(savedStartTime)
+        }
+
+        if (wasTracking) {
+            stopHandled = false
+            _isTracking.value = true
+            startForegroundNotification()
+            startTimer()
+            startLocationUpdates()
+            return true
+        }
+        return false
+    }
+
+    private fun persistState() {
+        prefs.edit()
+            .putBoolean(KEY_IS_TRACKING, _isTracking.value)
+            .putLong(KEY_ELAPSED_TIME, _elapsedTime.value)
+            .putLong(KEY_START_TIME, currentRunStartTime?.time ?: 0L)
+            .apply()
+    }
+
+    private fun clearState() {
+        prefs.edit().clear().apply()
+    }
+
+    private companion object {
+        private const val PREFS_NAME = "running_service_state"
+        private const val KEY_IS_TRACKING = "key_is_tracking"
+        private const val KEY_ELAPSED_TIME = "key_elapsed_time"
+        private const val KEY_START_TIME = "key_start_time"
     }
 }
