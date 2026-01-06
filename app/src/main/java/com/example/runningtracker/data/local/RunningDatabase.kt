@@ -1,6 +1,8 @@
 package com.example.runningtracker.data.local
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.runningtracker.data.local.entity.RunningRecordEntity
