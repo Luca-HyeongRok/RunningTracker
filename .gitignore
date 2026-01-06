@@ -1,0 +1,32 @@
+# IntelliJ / Android Studio
+*.iml
+.gradle
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+/.idea/
+
+# Local configuration
+/local.properties
+local.properties
+
+# OS
+.DS_Store
+
+# Build outputs
+/build
+/app/build
+/app/release
+/app/debug
+/captures
+.externalNativeBuild
+.cxx
+
+# Logs
+*.log
+
+# API Keys (IMPORTANT)
+app/src/main/res/values/google_maps_key.xml
