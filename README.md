@@ -44,6 +44,7 @@
 ---
 
 ## 🧱 프로젝트 구조 (간략)
+```file
 app/
 ├─ presentation/
 │ ├─ running/
@@ -58,6 +59,7 @@ app/
 │ └─ appModule.kt
 └─ util/
 └─ TimeFormatter.kt
+``` 
 ---
 <초기화면> <img width="311" height="666" alt="img" src="https://github.com/user-attachments/assets/14016123-15b6-4ef0-989e-d2902865a961" />
 
