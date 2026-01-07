@@ -3,14 +3,19 @@ package com.example.runningtracker
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import com.example.runningtracker.presentation.MainScreen
+import com.example.runningtracker.battery.BatteryReceiver
+import com.example.runningtracker.presentation.running.RunningEvent
+import com.example.runningtracker.presentation.running.RunningRoot
 import com.example.runningtracker.presentation.running.RunningViewModel
 import com.example.runningtracker.service.RunningService
 import com.example.runningtracker.service.ServiceAction
@@ -25,6 +30,8 @@ class MainActivity : ComponentActivity() {
     private val viewModel: RunningViewModel by viewModel()
     private var service: RunningService? = null
     private var isBound = false
+    private var batteryReceiver: BatteryReceiver? = null
+    private var isBatteryReceiverRegistered = false
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -46,6 +53,17 @@ class MainActivity : ComponentActivity() {
             connection,
             Context.BIND_AUTO_CREATE
         )
+
+        if (!isBatteryReceiverRegistered) {
+            batteryReceiver = BatteryReceiver { percent ->
+                viewModel.onBatteryPercentChanged(percent)
+            }
+            registerReceiver(
+                batteryReceiver,
+                IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            )
+            isBatteryReceiverRegistered = true
+        }
     }
 
     override fun onStop() {
@@ -54,26 +72,50 @@ class MainActivity : ComponentActivity() {
             unbindService(connection)
             isBound = false
         }
+        if (isBatteryReceiverRegistered) {
+            unregisterReceiver(batteryReceiver)
+            batteryReceiver = null
+            isBatteryReceiverRegistered = false
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            MyApplicationTheme {
-                MainScreen(
-                    uiState = viewModel.uiState.collectAsState().value,
-                    onAction = { action ->
-                        val intent = Intent(this, RunningService::class.java).apply {
-                            this.action = action.name
-                        }
-                        if (action == ServiceAction.START) {
-                            ContextCompat.startForegroundService(this, intent)
-                        } else {
-                            startService(intent)
+            val context = LocalContext.current
+
+            // Service Action 처리
+            LaunchedEffect(Unit) {
+                viewModel.serviceActions.collect { action ->
+                    val intent = Intent(context, RunningService::class.java).apply {
+                        this.action = action.name
+                    }
+                    if (action == ServiceAction.START) {
+                        ContextCompat.startForegroundService(context, intent)
+                    } else {
+                        context.startService(intent)
+                    }
+                }
+            }
+
+            // UI 이벤트 (Toast)
+            LaunchedEffect(Unit) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is RunningEvent.ShowMessage -> {
+                            Toast.makeText(
+                                context,
+                                event.message,
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
-                )
+                }
+            }
+
+            MyApplicationTheme {
+                RunningRoot()
             }
         }
     }

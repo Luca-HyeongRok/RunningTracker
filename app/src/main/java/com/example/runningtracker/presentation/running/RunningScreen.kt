@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import com.example.runningtracker.presentation.ButtonControls
-import com.example.runningtracker.presentation.RunningMap
+import com.example.runningtracker.presentation.component.ButtonControls
+import com.example.runningtracker.presentation.component.RunningMap
 import com.example.runningtracker.service.ServiceAction
 import com.example.runningtracker.util.formatTime
 
