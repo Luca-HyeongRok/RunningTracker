@@ -18,6 +18,7 @@ googlePlayServicesLocation = "21.3.0"
 googleMapsCompose = "6.0.0"
 
 kotlinxCoroutines = "1.8.1"
+robolectric = "4.12.2"
 
 # 🔥 핵심 수정
 ksp = "2.0.21-1.0.25"
@@ -53,6 +54,8 @@ google-play-services-location = { group = "com.google.android.gms", name = "play
 google-maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "googleMapsCompose" }
 
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
