@@ -1,4 +1,4 @@
-package com.example.runningtracker.presentation
+package com.example.runningtracker.presentation.component
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember

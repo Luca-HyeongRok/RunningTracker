@@ -1,4 +1,4 @@
-package com.example.runningtracker.presentation
+package com.example.runningtracker.presentation.component
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
