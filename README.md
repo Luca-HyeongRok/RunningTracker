@@ -43,6 +43,43 @@
 
 ---
 
+## 🚀 설치 및 실행 (Getting Started)
+
+### 1) 사전 준비
+- Android Studio (최신 안정 버전 권장)
+- JDK 17 (Android Studio 내장 JDK 사용 가능)
+- Google Maps API Key
+
+### 2) 프로젝트 클론
+```bash
+git clone <repo-url>
+cd RunningTracker
+```
+
+### 3) Google Maps API 키 설정
+`app/src/main/res/values/google_maps_key.xml` 파일을 생성하고 아래 내용을 추가하세요.
+
+```xml
+<resources>
+    <string name="google_maps_key" translatable="false">YOUR_API_KEY</string>
+</resources>
+```
+
+### 4) 앱 실행
+- Android Studio에서 프로젝트를 연 뒤 에뮬레이터 또는 실제 기기에서 실행
+- 또는 터미널에서 디버그 빌드:
+
+```bash
+./gradlew assembleDebug
+```
+
+Windows:
+```bash
+gradlew.bat assembleDebug
+```
+
+---
+
 ## 🧱 프로젝트 구조 (간략)
 ```file
 app/
