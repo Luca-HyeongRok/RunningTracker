@@ -1,4 +1,4 @@
-package com.example.runningtracker.service
+﻿package com.example.runningtracker.service
 
 import android.Manifest
 import android.content.Intent
@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.runningtracker.data.local.RunningDatabase
 import com.example.runningtracker.data.repository.RunningRepositoryImpl
 import com.example.runningtracker.domain.model.RunningResult
+import com.example.runningtracker.location.LocationPermissionHelper
 import com.example.runningtracker.util.DistanceCalculator
 import com.example.runningtracker.util.NotificationUtil
 import com.example.runningtracker.util.formatTime
@@ -28,15 +29,15 @@ import kotlinx.coroutines.withContext
 import java.util.Date
 
 /**
- * 러닝 측정 상태를 유지하고
- * 타이머 / 위치 수집 / 기록 저장을 담당하는 포그라운드 서비스
+ * ?щ떇 痢≪젙 ?곹깭瑜??좎??섍퀬
+ * ??대㉧ / ?꾩튂 ?섏쭛 / 湲곕줉 ??μ쓣 ?대떦?섎뒗 ?ш렇?쇱슫???쒕퉬??
  */
 class RunningService : LifecycleService() {
 
     private val binder = LocalBinder()
 
     // -----------------------------
-    // 상태
+    // ?곹깭
     // -----------------------------
 
     private val _isTracking = MutableStateFlow(false)
@@ -49,7 +50,7 @@ class RunningService : LifecycleService() {
     val path: StateFlow<List<LatLng>> = _path.asStateFlow()
 
     // -----------------------------
-    // 내부 컴포넌트
+    // ?대? 而댄룷?뚰듃
     // -----------------------------
 
     private lateinit var runTimer: RunTimer
@@ -59,7 +60,7 @@ class RunningService : LifecycleService() {
     private var stopHandled = false
 
     // -----------------------------
-    // 의존성
+    // ?섏〈??
     // -----------------------------
 
     private val dao by lazy {
@@ -105,7 +106,7 @@ class RunningService : LifecycleService() {
 
         if (intent == null) {
             restoreStateIfNeeded()
-            return START_STICKY
+            return START_NOT_STICKY
         }
 
         when (intent.action) {
@@ -114,15 +115,20 @@ class RunningService : LifecycleService() {
             ServiceAction.STOP.name -> stop()
         }
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     // -----------------------------
-    // 러닝 제어
+    // ?щ떇 ?쒖뼱
     // -----------------------------
 
     private fun start() {
         if (_isTracking.value) return
+        if (!LocationPermissionHelper.hasLocationPermissions(this)) {
+            Log.w("RunningService", "START ignored: location permission not granted")
+            stopSelf()
+            return
+        }
 
         stopHandled = false
         if (currentRunStartTime == null) {
@@ -132,7 +138,13 @@ class RunningService : LifecycleService() {
         _isTracking.value = true
         persistState()
 
-        startForegroundNotification()
+        val started = startForegroundNotification()
+        if (!started) {
+            _isTracking.value = false
+            persistState()
+            stopSelf()
+            return
+        }
         runTimer.start()
         locationTracker.start()
 
@@ -179,7 +191,7 @@ class RunningService : LifecycleService() {
     }
 
     // -----------------------------
-    // 저장
+    // ???
     // -----------------------------
 
     private suspend fun saveRunResult(
@@ -216,27 +228,36 @@ class RunningService : LifecycleService() {
     // Notification
     // -----------------------------
 
-    private fun startForegroundNotification() {
+    private fun startForegroundNotification(): Boolean {
         val builder = notificationBuilder
             ?: NotificationUtil.createNotification(this).also {
                 notificationBuilder = it
             }
 
-        startForeground(
-            NotificationUtil.NOTIFICATION_ID,
-            builder.setContentText("운동 중 · ${formatTime(_elapsedTime.value)}").build()
-        )
+        return try {
+            startForeground(
+                NotificationUtil.NOTIFICATION_ID,
+                builder.setContentText("\uC774\uB3D9 \uC911 \u23F1 ${formatTime(_elapsedTime.value)}").build()
+            )
+            true
+        } catch (e: SecurityException) {
+            Log.e("RunningService", "Failed to start foreground service", e)
+            false
+        } catch (e: RuntimeException) {
+            Log.e("RunningService", "Foreground service start not allowed or failed", e)
+            false
+        }
     }
 
     private fun updateNotification(isPaused: Boolean) {
         val builder = notificationBuilder ?: return
-        val status = if (isPaused) "일시정지" else "운동 중"
+        val status = if (isPaused) "Paused" else "Tracking"
         if (!hasNotificationPermission()) return
 
         try {
             NotificationManagerCompat.from(this).notify(
                 NotificationUtil.NOTIFICATION_ID,
-                builder.setContentText("$status · ${formatTime(_elapsedTime.value)}").build()
+                builder.setContentText("$status 쨌 ${formatTime(_elapsedTime.value)}").build()
             )
         } catch (_: SecurityException) {
             // Permission can be revoked while service is running.
@@ -252,7 +273,7 @@ class RunningService : LifecycleService() {
     }
 
     // -----------------------------
-    // 종료 / 복구
+    // 醫낅즺 / 蹂듦뎄
     // -----------------------------
 
     private fun resetAndStop() {
@@ -285,10 +306,9 @@ class RunningService : LifecycleService() {
         }
 
         if (wasTracking) {
-            _isTracking.value = true
-            startForegroundNotification()
-            runTimer.start()
-            locationTracker.start()
+            // API 34+ foreground restrictions: do not auto-restart tracking here.
+            _isTracking.value = false
+            persistState()
         }
     }
 
@@ -324,3 +344,4 @@ class RunningService : LifecycleService() {
         private const val KEY_START_TIME = "key_start_time"
     }
 }
+

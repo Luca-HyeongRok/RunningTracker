@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -16,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import com.example.runningtracker.battery.BatteryReceiver
+import com.example.runningtracker.location.LocationPermissionHelper
 import com.example.runningtracker.presentation.running.RunningEvent
 import com.example.runningtracker.presentation.running.RunningViewModel
 import com.example.runningtracker.service.RunningService
@@ -29,10 +31,25 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class MainActivity : ComponentActivity() {
 
     private val viewModel: RunningViewModel by viewModel()
+    private var pendingStartAfterPermission = false
     private var service: RunningService? = null
     private var isBound = false
     private var batteryReceiver: BatteryReceiver? = null
     private var isBatteryReceiverRegistered = false
+    private val locationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+            val granted = grants.values.any { it }
+            if (granted && pendingStartAfterPermission) {
+                viewModel.startRunning()
+            } else if (pendingStartAfterPermission) {
+                Toast.makeText(
+                    this,
+                    "위치 권한이 필요합니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            pendingStartAfterPermission = false
+        }
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -119,7 +136,14 @@ class MainActivity : ComponentActivity() {
                 val uiState by viewModel.uiState.collectAsState()
                 val onAction: (ServiceAction) -> Unit = { action ->
                     when (action) {
-                        ServiceAction.START -> viewModel.startRunning()
+                        ServiceAction.START -> {
+                            if (LocationPermissionHelper.hasLocationPermissions(this)) {
+                                viewModel.startRunning()
+                            } else {
+                                pendingStartAfterPermission = true
+                                LocationPermissionHelper.requestLocationPermissions(locationPermissionLauncher)
+                            }
+                        }
                         ServiceAction.PAUSE -> viewModel.pauseRunning()
                         ServiceAction.STOP -> viewModel.stopRunning()
                     }
