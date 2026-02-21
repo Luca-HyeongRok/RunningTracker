@@ -11,11 +11,12 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import com.example.runningtracker.battery.BatteryReceiver
 import com.example.runningtracker.presentation.running.RunningEvent
-import com.example.runningtracker.presentation.running.RunningRoot
 import com.example.runningtracker.presentation.running.RunningViewModel
 import com.example.runningtracker.service.RunningService
 import com.example.runningtracker.service.ServiceAction
@@ -115,8 +116,21 @@ class MainActivity : ComponentActivity() {
             }
 
             RunningTrackerTheme {
-                RunningRoot()
+                val uiState by viewModel.uiState.collectAsState()
+                val onAction: (ServiceAction) -> Unit = { action ->
+                    when (action) {
+                        ServiceAction.START -> viewModel.startRunning()
+                        ServiceAction.PAUSE -> viewModel.pauseRunning()
+                        ServiceAction.STOP -> viewModel.stopRunning()
+                    }
+                }
+                
+                com.example.runningtracker.presentation.MainScreen(
+                    uiState = uiState,
+                    onAction = onAction
+                )
             }
+
         }
     }
 }
