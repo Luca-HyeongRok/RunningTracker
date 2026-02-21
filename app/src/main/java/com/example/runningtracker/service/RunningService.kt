@@ -1,9 +1,13 @@
 package com.example.runningtracker.service
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.LifecycleService
@@ -227,11 +231,24 @@ class RunningService : LifecycleService() {
     private fun updateNotification(isPaused: Boolean) {
         val builder = notificationBuilder ?: return
         val status = if (isPaused) "일시정지" else "운동 중"
+        if (!hasNotificationPermission()) return
 
-        NotificationManagerCompat.from(this).notify(
-            NotificationUtil.NOTIFICATION_ID,
-            builder.setContentText("$status · ${formatTime(_elapsedTime.value)}").build()
-        )
+        try {
+            NotificationManagerCompat.from(this).notify(
+                NotificationUtil.NOTIFICATION_ID,
+                builder.setContentText("$status · ${formatTime(_elapsedTime.value)}").build()
+            )
+        } catch (_: SecurityException) {
+            // Permission can be revoked while service is running.
+        }
+    }
+
+    private fun hasNotificationPermission(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     // -----------------------------
@@ -245,7 +262,12 @@ class RunningService : LifecycleService() {
         currentRunStartTime = null
 
         clearState()
-        stopForeground(true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
         stopSelf()
     }
 
