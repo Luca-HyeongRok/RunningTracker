@@ -102,6 +102,13 @@ gradlew.bat assembleDebug
 > 실제 스토어 출시 시에는 별도의 Privacy Policy 문서(URL)와 Play Console 데이터 보안 양식 내용을 본 섹션과 일치시키세요.
 
 ---
+## 📄 Privacy Policy
+
+- 정책 URL: `https://example.com/running-tracker/privacy`
+- 출시 전 위 URL을 실제 공개 문서 주소로 교체하세요.
+- 앱 내 설정 화면/온보딩, Play Store 등록 정보(개인정보처리방침)와 동일한 URL을 사용하세요.
+
+---
 
 ## 🧱 프로젝트 구조 (간략)
 ```file
