@@ -19,7 +19,7 @@ import com.example.runningtracker.presentation.running.RunningRoot
 import com.example.runningtracker.presentation.running.RunningViewModel
 import com.example.runningtracker.service.RunningService
 import com.example.runningtracker.service.ServiceAction
-import com.example.runningtracker.ui.theme.MyApplicationTheme
+import com.example.runningtracker.ui.theme.RunningTrackerTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
@@ -114,7 +114,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            MyApplicationTheme {
+            RunningTrackerTheme {
                 RunningRoot()
             }
         }
