@@ -79,6 +79,29 @@ gradlew.bat assembleDebug
 ```
 
 ---
+## 🔐 권한 및 개인정보 처리 (출시 기준)
+
+### 권한 사용 목적
+- `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`: 러닝 중 위치 추적 및 경로 표시
+- `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`: 러닝 중 백그라운드 위치 추적 유지
+- `POST_NOTIFICATIONS` (Android 13+): 포그라운드 서비스 알림 표시
+
+### 수집/저장 데이터 (현재 구현 기준)
+- 러닝 기록: 시작 시각, 총 운동 시간, 평균 속도, 이동 거리
+- 위치 데이터: 러닝 경로 표시를 위해 실시간 사용
+- 저장 위치: 기기 내부 Room DB (`running_database`)
+
+### 외부 전송 및 제3자 제공 (현재 구현 기준)
+- 별도 백엔드 서버로 러닝 기록을 전송하지 않음
+- Google Maps SDK 사용으로 지도 표시 관련 네트워크 통신이 발생할 수 있음
+
+### 사용자 안내
+- 위치 권한이 없으면 위치 기반 기능이 동작하지 않음
+- 권한은 기기 설정에서 언제든 변경 가능
+
+> 실제 스토어 출시 시에는 별도의 Privacy Policy 문서(URL)와 Play Console 데이터 보안 양식 내용을 본 섹션과 일치시키세요.
+
+---
 
 ## 🧱 프로젝트 구조 (간략)
 ```file
