@@ -122,6 +122,50 @@ gradlew.bat assembleDebug
 - 앱 내 설정 화면/온보딩, Play Store 등록 정보(개인정보처리방침)와 동일한 URL을 사용하세요.
 
 ---
+## 📦 지원 범위 (Compatibility)
+
+- `minSdk`: 24 (Android 7.0)
+- `targetSdk`: 36
+- `compileSdk`: 36
+- 언어/런타임: Kotlin + JVM 11 타겟
+
+실행 요구사항:
+- 위치 서비스(GPS) 사용 가능 기기
+- 지도 로딩 및 위치 처리 시 네트워크 연결 권장
+
+검증 권장 범위(출시 전):
+- Android 7/8/10/13 이상 버전별 기본 동작 점검
+- 권한 거부/재허용, 백그라운드 전환, 배터리 절전 모드 시나리오 점검
+
+---
+
+## 🏗 릴리스 빌드 가이드 (Release)
+
+현재 설정 기준:
+- `release` 빌드 타입 존재
+- 코드 축소/난독화: `isMinifyEnabled = false`
+- Google Maps API 키는 릴리스 키(SHA-1) 기준으로 별도 검증 필요
+
+빌드 명령:
+```bash
+./gradlew bundleRelease
+```
+
+Windows:
+```bash
+gradlew.bat bundleRelease
+```
+
+출력 경로:
+- `app/build/outputs/bundle/release/`
+
+스토어 배포 전 필수 체크:
+- 업로드용 서명 키(keystore)로 서명된 AAB 생성
+- `versionCode`/`versionName` 업데이트
+- 릴리스 빌드에서 지도/위치/알림 권한 흐름 최종 점검
+- ProGuard/R8 적용 계획이 있다면 난독화 후 회귀 테스트 수행
+
+---
 
 ## 🧱 프로젝트 구조 (간략)
 ```file
