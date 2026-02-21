@@ -65,6 +65,19 @@ cd RunningTracker
 </resources>
 ```
 
+출시 기준 권장 설정:
+- 디버그/릴리스 API 키를 분리해서 사용
+- Google Cloud Console에서 `Maps SDK for Android` 활성화
+- API 키 제한(Application restrictions) 설정:
+  - Android apps
+  - 패키지명: `com.example.runningtracker`
+  - SHA-1 인증서 지문: 디버그/릴리스 각각 등록
+- API restrictions에서 Maps 관련 API만 허용
+
+참고:
+- `google_maps_key.xml`은 `.gitignore`에 포함되어 있으므로 저장소에 커밋되지 않습니다.
+- 릴리스 빌드 전 실제 릴리스 keystore 기준 SHA-1로 동작 확인이 필요합니다.
+
 ### 4) 앱 실행
 - Android Studio에서 프로젝트를 연 뒤 에뮬레이터 또는 실제 기기에서 실행
 - 또는 터미널에서 디버그 빌드:
