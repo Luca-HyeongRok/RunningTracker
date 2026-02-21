@@ -19,7 +19,9 @@ import androidx.compose.ui.unit.sp
 import com.example.runningtracker.domain.model.RunningResult
 import com.example.runningtracker.util.formatTime
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun HistoryScreen(
@@ -91,7 +93,7 @@ private fun HistoryItem(
             ) {
                 Column {
                     Text(
-                        text = "SUNDAY MORNING RUN", // Placeholder for actual run name if available
+                        text = buildRunTitle(result.startTimeStamp.time),
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp
@@ -177,7 +179,31 @@ private fun StatColumn(
 
 private fun formatDate(timeMillis: Long): String {
     val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.KOREA)
+    formatter.timeZone = TimeZone.getTimeZone("Asia/Seoul")
     return formatter.format(timeMillis)
+}
+
+private fun buildRunTitle(timeMillis: Long): String {
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul"), Locale.KOREA).apply {
+        timeInMillis = timeMillis
+    }
+    val day = when (calendar.get(Calendar.DAY_OF_WEEK)) {
+        Calendar.SUNDAY -> "SUNDAY"
+        Calendar.MONDAY -> "MONDAY"
+        Calendar.TUESDAY -> "TUESDAY"
+        Calendar.WEDNESDAY -> "WEDNESDAY"
+        Calendar.THURSDAY -> "THURSDAY"
+        Calendar.FRIDAY -> "FRIDAY"
+        else -> "SATURDAY"
+    }
+    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+    val period = when (hour) {
+        in 5..11 -> "MORNING"
+        in 12..17 -> "AFTERNOON"
+        in 18..21 -> "EVENING"
+        else -> "NIGHT"
+    }
+    return "$day $period RUN"
 }
 
 private fun formatDistance(distanceMeters: Int): String {
